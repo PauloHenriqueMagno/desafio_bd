@@ -142,7 +142,7 @@ app.post("/products/:type", (req, res) => {
     res.send(400, "Name and price are necessary, description is optional");
 });
 
-app.get("/products", (req, res) => {
+app.get("/", (req, res) => {
     res.send(200, products)
 })
 

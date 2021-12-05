@@ -10,7 +10,7 @@
   "keywords": [
     "heroku"
   ],
-  "author": "",
+  "author": "Paulo Henrique Magno",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
