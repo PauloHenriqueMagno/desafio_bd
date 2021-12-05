@@ -1,6 +1,6 @@
 const express = require('express');
 const uuid = require('uuid');
-const port = 3000;
+const port = process.env.PORT || 5000;
 
 const app = express();
 
@@ -125,7 +125,7 @@ app.post("/products/:type", (req, res) => {
 
     if(!!req.body.name && !!req.body.price){
         const list = products[req.params.type];
-        const lastProduct = list[list.length - 1];
+        const lastProduct = list[list.length - 1] || {id: 0, position: 0};
 
         const newProduct = {
             name: req.body.name,
