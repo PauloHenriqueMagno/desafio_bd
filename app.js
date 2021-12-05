@@ -125,7 +125,7 @@ app.post("/products/:type", (req, res) => {
 
     if(!!req.body.name && !!req.body.price){
         const list = products[req.params.type];
-        const lastProduct = list[list.length - 1] || {id: 0, position: 0};
+        const lastProduct = list.length === 0 ? list[list.length - 1] : {id: 0, position: 0};
 
         const newProduct = {
             name: req.body.name,
