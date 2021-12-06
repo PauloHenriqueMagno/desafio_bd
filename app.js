@@ -4,6 +4,16 @@ const port = process.env.PORT || 5000;
 const app = express();
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
+const multer = require("multer");
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./uploads/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, new Date().toISOString() + file.originalname);
+    }
+});
+const upload = multer({storage: storage});
 
 app.use(express.json());
 
@@ -43,7 +53,7 @@ app.patch("/products/:type", (req, res) => {
     res.status(200).send(products)
 });
 
-app.post("/products/:type", jsonParser, (req, res) => {
+app.post("/products/:type", jsonParser, upload.single("image"), (req, res) => {
 
     if(!!req.body.name && !!req.body.price){  
         const list = products[req.params.type];
@@ -54,7 +64,8 @@ app.post("/products/:type", jsonParser, (req, res) => {
             "name": req.body.name,
             "price": req.body.price,
             "id": lastProduct.id + 1,
-            "position": lastProduct.position + 1
+            "position": lastProduct.position + 1,
+            "image": req.file.path
         };
         
         products[req.params.type].push(newProduct);
