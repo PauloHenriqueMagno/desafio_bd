@@ -72,7 +72,40 @@ app.put("/products/:type/:id", jsonParser, (req, res) => {
     else{
         res.status(400).send("Invalid ID");
     }
+});
+app.put("/products/dias/:day/:id", jsonParser, (req, res) => {
+    const { day, id } = req.params;
+    const { name, price, details, image, position } = req.body;
+    const atualPosition = products.week[day].filter(prod => prod.id == id)[0].position;
 
+    if(products.week[day].some(prod => prod.id == id)){
+        const listMap = products.week[day].map(prod => {
+            if(!!position && prod.position >= position && prod.id != id){
+                if(prod.position == position && prod.position > atualPosition){
+                    prod.position = prod.position - 1;
+                }
+                else{
+                    prod.position = prod.position + 1;
+                }
+            };
+            if(prod.id == id){
+                if(!!name){ prod.name = name };
+                if(!!price){ prod.price = price };
+                if(!!details){ prod.details = details };
+                if(!!image){ prod.image = image };
+                if(!!position){ prod.position = position };
+            };
+
+            return prod;
+        });
+
+        products.week[day] = orderList(listMap);
+
+        res.status(200).send(listMap);
+    }
+    else{
+        res.status(400).send("Invalid ID");
+    }
 });
 
 app.post("/products/:type", jsonParser, (req, res) => {
