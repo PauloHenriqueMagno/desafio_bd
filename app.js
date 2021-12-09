@@ -1,19 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 const app = express();
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
-const multer = require("multer");
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "./uploads/");
-    },
-    filename: (req, file, cb) => {
-        cb(null, new Date().toISOString() + file.originalname);
-    }
-});
-const upload = multer({storage: storage});
 
 app.use(express.json());
 
@@ -29,7 +19,7 @@ const products = {
     bebidas: [],
     sobremesas: [],
     lanches: [],
-    dias: {
+    week: {
         segunda: [],
         terca: [],
         quarta: [],
@@ -47,25 +37,58 @@ const orderList = (list) => {
     }
 
     return list
-}
+};
 
-app.patch("/products/:type", (req, res) => {
-    res.status(200).send(products)
+app.put("/products/:type/:id", jsonParser, (req, res) => {
+    const { type, id } = req.params;
+    const { name, price, details, image, position } = req.body;
+    const atualPosition = products[type].filter(prod => prod.id == id)[0].position;
+
+    if(products[type].some(prod => prod.id == id)){
+        const listMap = products[type].map(prod => {
+            if(!!position && prod.position >= position && prod.id != id){
+                if(prod.position == position && prod.position > atualPosition){
+                    prod.position = prod.position - 1;
+                }
+                else{
+                    prod.position = prod.position + 1;
+                }
+            };
+            if(prod.id == id){
+                if(!!name){ prod.name = name };
+                if(!!price){ prod.price = price };
+                if(!!details){ prod.details = details };
+                if(!!image){ prod.image = image };
+                if(!!position){ prod.position = position };
+            };
+
+            return prod;
+        });
+
+        products[type] = orderList(listMap);
+
+        res.status(200).send(listMap);
+    }
+    else{
+        res.status(400).send("Invalid ID");
+    }
+
 });
 
-app.post("/products/:type", jsonParser, upload.single("image"), (req, res) => {
+app.post("/products/:type", jsonParser, (req, res) => {
+    const { name, price, details, image } = req.body
 
-    if(!!req.body.name && !!req.body.price){  
+    if(!!req.body.name && !!req.body.price && !!req.body.image){  
         const list = products[req.params.type];
-        
         const lastProduct = list.length !== 0 ? list[list.length - 1] : {id: 0, position: 0};
         
         const newProduct = {
-            "name": req.body.name,
-            "price": req.body.price,
+            "name": name,
+            "price": price,
+            "details": details,
             "id": lastProduct.id + 1,
             "position": lastProduct.position + 1,
-            "image": req.file.path
+            "image": image
         };
         
         products[req.params.type].push(newProduct);
@@ -76,14 +99,52 @@ app.post("/products/:type", jsonParser, upload.single("image"), (req, res) => {
     res.status(400).send("Name and price are necessary, description is optional");
 });
 
-app.delete("/products/:type", (req, res) => {
-    const id = req.body.id;
-    const list = products[req.params.type];
+app.post("/products/dias/:day", jsonParser, (req, res) => {
+    const { name, price, details, image } = req.body;
+    const { day } = req.params;
 
-    if(list.some(prod => prod.id == id)){
-        products[req.params.type] = list.filter(prod => prod.id !== id);
-        products[req.params.type] = orderList(products[req.params.type])
-        res.status(202).send(products[req.params.type]);
+    if(!!req.body.name && !!req.body.price && !!req.body.image){  
+        const lastProduct = list.length !== 0 ? list[list.length - 1] : {id: 0, position: 0};
+        
+        const newProduct = {
+            "name": name,
+            "price": price,
+            "details": details,
+            "id": lastProduct.id + 1,
+            "position": lastProduct.position + 1,
+            "image": image
+        };
+        
+        products.week[day].push(newProduct);
+        
+        res.status(201).send(list);
+    };
+
+    res.status(400).send("Name and price are necessary, description is optional");
+});
+
+app.delete("/products/:type", (req, res) => {
+    const { id } = req.body;
+    const { type } = req.params;
+
+    if(products[type].some(prod => prod.id == id)){
+        const listFilter = products[type].filter(prod => prod.id !== id);
+        products[type] = orderList(listFilter);
+        res.status(202).send(listFilter);
+    }
+    else{
+        res.status(400).send("Invalid ID");
+    };
+});
+
+app.delete("/products/dias/:day", (req, res) => {
+    const { id } = req.body;
+    const { day } = req.params;
+
+    if(products.week[day].some(prod => prod.id == id)){
+        const listFilter = products.week[day].filter(prod => prod.id !== id);
+        products.week[day] = orderList(listFilter);
+        res.status(202).send(listFilter);
     }
     else{
         res.status(400).send("Invalid ID");
