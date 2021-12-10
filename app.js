@@ -1,9 +1,8 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5001;
 const app = express();
-const jsonParser = bodyParser.json();
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 app.use(express.json());
 
@@ -29,6 +28,11 @@ const products = {
     },
 };
 
+const admin = {
+    id: 1,
+    password: "$2b$10$YGR8/jneqGb2wF9Vppu1euKwKcmy09qnHr8SWU12fOppNV1i8sWK2"
+};
+
 const orderList = (list) => {
     list = list.sort((a,b) => a.position - b.position);
 
@@ -39,7 +43,43 @@ const orderList = (list) => {
     return list
 };
 
-app.put("/products/:type/:id", jsonParser, (req, res) => {
+const verifyToken = (req, res, next) => {
+    const token = req.headers["x-access-token"];
+    jwt.verify(token, admin, (err, decoded) => {
+        if(err){
+            return res.status(401).send("É necessario estar logado");
+        };
+
+        next();
+    });
+};
+
+app.post("/register", async (req, res) => {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    
+    if(await bcrypt.compare(req.body.password, admin.password)){
+        admin.password = hashedPassword;
+
+        res.status(202).send("Nova senha salva");
+    }
+    else{
+        res.status(400).send("Senha incorreta");
+    };
+
+});
+
+app.post("/login", async (req, res) => {    
+    if(await bcrypt.compare(req.body.password, admin.password)){
+        const token = jwt.sign({id: 1}, admin, {expiresIn: 3600000})
+        res.status(202).send({ message: "Senha incorreta" });
+    }else{
+        res.status(400).send({ message: "Senha incorreta" });
+    }
+});
+
+app.put("/products/:type/:id", (req, res) => {
+    verifyToken(req, res);
+
     const { type, id } = req.params;
     const { name, price, details, image, position } = req.body;
     const atualPosition = products[type].filter(prod => prod.id == id)[0].position;
@@ -73,7 +113,10 @@ app.put("/products/:type/:id", jsonParser, (req, res) => {
         res.status(400).send("Invalid ID");
     }
 });
-app.put("/products/dias/:day/:id", jsonParser, (req, res) => {
+
+app.put("/products/dias/:day/:id", (req, res) => {
+    verifyToken(req, res);
+
     const { day, id } = req.params;
     const { name, price, details, image, position } = req.body;
     const atualPosition = products.week[day].filter(prod => prod.id == id)[0].position;
@@ -108,7 +151,9 @@ app.put("/products/dias/:day/:id", jsonParser, (req, res) => {
     }
 });
 
-app.post("/products/:type", jsonParser, (req, res) => {
+app.post("/products/:type", (req, res) => {
+    verifyToken(req, res);
+
     const { name, price, details, image } = req.body
 
     if(!!req.body.name && !!req.body.price && !!req.body.image){  
@@ -132,7 +177,9 @@ app.post("/products/:type", jsonParser, (req, res) => {
     res.status(400).send("Name and price are necessary, description is optional");
 });
 
-app.post("/products/dias/:day", jsonParser, (req, res) => {
+app.post("/products/dias/:day", (req, res) => {
+    verifyToken(req, res);
+
     const { name, price, details, image } = req.body;
     const { day } = req.params;
 
@@ -157,6 +204,8 @@ app.post("/products/dias/:day", jsonParser, (req, res) => {
 });
 
 app.delete("/products/:type", (req, res) => {
+    verifyToken(req, res);
+
     const { id } = req.body;
     const { type } = req.params;
 
@@ -171,6 +220,8 @@ app.delete("/products/:type", (req, res) => {
 });
 
 app.delete("/products/dias/:day", (req, res) => {
+    verifyToken(req, res);
+
     const { id } = req.body;
     const { day } = req.params;
 
@@ -185,7 +236,7 @@ app.delete("/products/dias/:day", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-    res.send(200, products)
+    res.status(200).send(products)
 })
 
 app.listen(port, () => {
