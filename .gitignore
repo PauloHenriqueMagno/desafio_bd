@@ -1,6 +1,2 @@
-# dependencies
-/node_modules
-npm-debug.log
-.DS_Store
-/*.env
-.vercel
+node_modules/
+.env

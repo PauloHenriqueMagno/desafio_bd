@@ -1,0 +1,47 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "airbnb-base"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
+  "rules": {
+    "semi": ["warn", "always"],
+    "class-methods-use-this": "off",
+    "camelcase": "off",
+    "import/no-unresolved": "off",
+    "indent": ["warn", 2],
+    "lines-between-class-members": "off",
+    "no-console": "off",
+    "no-else-return": "off",
+    "no-empty-function": "off",
+    "no-shadow": "off",
+    "no-return-await": "off",
+    "no-useless-constructor": "off",
+    "no-var": 1,
+    "no-unused-vars": "warn",
+    "quotes": "warn",
+    "object-curly-newline": ["error", {
+      "ObjectPattern": { "multiline": true, "minProperties": 5 },
+      "ImportDeclaration": { "multiline": true, "minProperties": 5 },
+      "ExportDeclaration": { "multiline": true, "minProperties": 5 }
+      }],
+      "import/prefer-default-export": "off",
+      "import/extensions": [
+        "warn",
+        {
+          "ts": "never"
+        }
+      ]
+    }
+  }
