@@ -7,6 +7,10 @@ API para cadastro de usuário
 
 <a href="https://documenter.getpostman.com/view/20745940/UzJFuHep">Postman</a>
 
+## **Diagrama**
+
+<a href="https://drive.google.com/file/d/1oS69E1mUg9T4TwefXxHxZSf5z2cZyR1n/view">Diagrama</a>
+
 ## **Utilizando a aplicação**
 
 Para iniciar o projeto é necessário instalar os pacotes usados na aplicação, para isso utilize o comando abaixo:
