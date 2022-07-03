@@ -1,20 +1,20 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
-class ErrorHandler extends Error {
+class ErrorHandler extends TypeError {
   statusCode: number;
-  json: any;
+  message: string;
 
-  constructor(statuscode: number, json: any) {
+  constructor(statuscode: number, message: string) {
     super();
     this.statusCode = statuscode;
-    this.json = json;
+    this.message = message;
   }
 }
 
-const handleErrors = (error: ErrorHandler, res: Response) => {
-  const { statusCode, json } = error;
+const handleErrors = (error: ErrorHandler, _: Request, res: Response) => {
+  const { statusCode, message } = error;
 
-  return res.status(statusCode).json(json);
+  return res.status(statusCode).send(message);
 };
 
 export { ErrorHandler, handleErrors };
